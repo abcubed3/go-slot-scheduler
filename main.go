@@ -135,7 +135,7 @@ func addCapacityHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "errors: required extraslot not provided")
 		return
 	}
-	log.Printf("request to add capacity: %s", p)
+	log.Printf("request to add capacity: %+v", p)
 	
 	commit, err := addCapacity(r.Context(), projectID, p.Region, p.ExtraSlot, maxSlots)
 	if err != nil {
