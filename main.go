@@ -64,8 +64,8 @@ func init() {
 		log.Fatal("MAX_SLOTS can not be less than or equal to zero.")
 	}
 
-	if queue = os.Getenv("QUEUE"); queue == "" {
-		log.Fatal("QUEUE can not be empty. Create and provide a queue id")
+	if queue = os.Getenv("QUEUE_ID"); queue == "" {
+		log.Fatal("QUEUE_ID can not be empty. Create and provide a queue id")
 	}
 
 	if queueRegion = os.Getenv("QUEUE_REGION"); queueRegion == "" {
@@ -234,7 +234,7 @@ type Commit struct {
 func launchDeleteTask(ctx context.Context, r *http.Request, adminProjectID, queueRegion, queue, commitName string, minutes int64) error {
 	host := r.Host
 
-	deleteURL := host + deleteCapacityPath
+	deleteURL := "https://" + host + deleteCapacityPath
 	log.Println(deleteURL)
 
 	c, err := cloudtasks.NewClient(ctx)
