@@ -1,8 +1,8 @@
 # Go-Slot-Scheduler
-A simple web utility service to auto schedule BigQuery flex slots for an organization at certain hours of the day, in a serverless mode with Cloud Run, Tasks and Scheduler 
+A simple web utility service to auto schedule BigQuery flex slots for an organization at certain hours of the day, in a serverless mode with Cloud Run, Tasks and Scheduler.
 
 ## Deploy
-* Clone repo in Cloud Shell of project assigned for BigQuery Reservation
+* Clone repo in Cloud Shell of project assigned for BigQuery Reservation and change directory to go-slot-scheduler/
 * Set GCloud parameters if not set, choose region of compute
 ```bash
 export PROJECT_ID=$(gcloud config get-value project)
@@ -110,3 +110,10 @@ gcloud run deploy go-slot-scheduler --image [IMAGE]
 
 OR run on Docker locally
 ```
+
+## Future Work
+* Adjust dedicated slot assignments for projects after capacity adjustment
+* Add schedule frequency to environment and create job schedules 
+
+## Credit
+Go-slot-scheduler is inspired by [bq-slot-scheduler](https://github.com/pdunn/bq-slot-scheduler) in python written by [Patrick Dunn](https://medium.com/google-cloud/scheduling-bigquery-slots-2a2beba42711) for AppEngine
