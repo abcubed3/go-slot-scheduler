@@ -33,7 +33,7 @@ const (
 
 var (
 	maxSlots           int64
-	queue, queueRegion string
+	queue, queueLocation string
 	port, projectID string
 )
 
@@ -41,7 +41,7 @@ var (
 type Config struct {
 	MaxSlot     int64
 	QueueID     string
-	QueueRegion string
+	QueueLocation string
 }
 
 func init() {
@@ -68,7 +68,7 @@ func init() {
 		log.Fatal("QUEUE_ID can not be empty. Create and provide a queue id")
 	}
 
-	if queueRegion = os.Getenv("QUEUE_REGION"); queueRegion == "" {
+	if queueLocation = os.Getenv("QUEUE_LOCATION"); queueLocation == "" {
 		log.Fatal("QUEUE_REGION can not be empty. Provide queue region")
 	}
 }
@@ -135,7 +135,8 @@ func addCapacityHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "errors: required extraslot not provided")
 		return
 	}
-
+	log.Printf("request to add capacity: %s", p)
+	
 	commit, err := addCapacity(r.Context(), projectID, p.Region, p.ExtraSlot, maxSlots)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -147,7 +148,7 @@ func addCapacityHandler(w http.ResponseWriter, r *http.Request) {
 
 	if commit != nil {
 		log.Printf("purchased commitmment, launching delete task for commit ID: %s", commit.Name)
-		if err := launchDeleteTask(r.Context(), r, projectID, queueRegion, queue, commit.Name, p.Minutes); err != nil {
+		if err := launchDeleteTask(r.Context(), r, projectID, queueLocation, queue, commit.Name, p.Minutes); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "errors: %v", err)
 
@@ -159,6 +160,7 @@ func addCapacityHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`{"data":"request processed"}"`))
+	w.Write([]byte("\n"))
 }
 
 func healthzHandler(w http.ResponseWriter, r *http.Request) {
@@ -235,7 +237,6 @@ func launchDeleteTask(ctx context.Context, r *http.Request, adminProjectID, queu
 	host := r.Host
 
 	deleteURL := "https://" + host + deleteCapacityPath
-	log.Println(deleteURL)
 
 	c, err := cloudtasks.NewClient(ctx)
 	if err != nil {
@@ -302,6 +303,7 @@ func deleteCapacityHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`{"data":"request processed"}"`))
+	w.Write([]byte("\n"))
 }
 
 func deleteCapacity(ctx context.Context, commitName string) error {
