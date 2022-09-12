@@ -59,7 +59,7 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
 ```
 
 ### Deploy to CloudRun
-* Ensure you have the right permissions to deploy to (CloudRun) [https://cloud.google.com/run/docs/deploying#permissions_required_to_deploy], using Cloud Build and (Artifact Registry)[https://cloud.google.com/artifact-registry/docs/access-control#roles]
+* Ensure you have the right permissions to deploy to [CloudRun](https://cloud.google.com/run/docs/deploying#permissions_required_to_deploy), using [Cloud Build from source](https://cloud.google.com/run/docs/deploying-source-code#permissions_required_to_deploy) and [Artifact Registry](https://cloud.google.com/artifact-registry/docs/access-control#roles)
 * Update environment variables for MAX_SLOTS for the organization or slot commitment
 * Deploy service to Cloudrun 
 ```bash
@@ -91,14 +91,13 @@ curl -d '@data.json' $ENDPOINT/add_capacity -H "Content-Type:application/json"
 ``` bash
 # Schedule 100 extra slots at 6AM M-F, for 10 hours
 # https://cloud.google.com/sdk/gcloud/reference/scheduler/jobs/create/http 
-
+# Default timezone is UTC, but you can change with an extra command `--time-zone="est"`
 gcloud scheduler jobs create http slot-schedule \
     --location=$QUEUE_LOCATION \
     --schedule="* 6 * * 1-5" \
     --headers="Content-Type=application/json" \
     --uri="${ENDPOINT}/add_capacity" \
     --message-body-from-file=data.json \
-    --time-zone="utc" \
     --oidc-service-account-email=${SERV_ACCT}
 ```
 
