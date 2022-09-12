@@ -59,6 +59,7 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
 ```
 
 ### Deploy to CloudRun
+* Ensure you have the right permissions to deploy to (CloudRun) [https://cloud.google.com/run/docs/deploying#permissions_required_to_deploy], using Cloud Build and (Artifact Registry)[https://cloud.google.com/artifact-registry/docs/access-control#roles]
 * Update environment variables for MAX_SLOTS for the organization or slot commitment
 * Deploy service to Cloudrun 
 ```bash
