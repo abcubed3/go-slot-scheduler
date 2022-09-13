@@ -6,13 +6,13 @@ A simple web utility service to auto schedule BigQuery flex slots for an organiz
 * Set GCloud parameters if not set, choose region of compute
 ```bash
 export PROJECT_ID=$(gcloud config get-value project)
-gcloud config set compute/region us-east1
+gcloud config set compute/region us-east4
 ```
 
 ### Create a Task Queue
 ``` bash
 QUEUE_ID=commit-delete-queue
-QUEUE_LOCATION=us-east1
+QUEUE_LOCATION=us-east4
 gcloud tasks queues create $QUEUE_ID --location=$QUEUE_LOCATION
 ```
 
@@ -71,6 +71,7 @@ gcloud run deploy go-slot-scheduler --region ${REGION} --set-env-vars=MAX_SLOTS=
 
 * Payload of http request in `data.json`
 ``` json
+# if extra_slot is less than 100, scheduler will default to minimum slot of 100
 {
     "extra_slot":100,
     "region":"us",

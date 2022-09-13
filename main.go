@@ -28,14 +28,17 @@ const (
 
 	defaultRegion      = "US"
 	defaultMinute      = int64(1)
-
+	
 )
 
 var (
 	maxSlots           int64
 	queue, queueLocation string
 	port, projectID string
+	defaultServiceAcct string
 )
+
+var errMaxSot = errors.New("commitment has reached MAX Capacity Slot")
 
 // ENV config
 type Config struct {
@@ -53,6 +56,12 @@ func init() {
 			log.Fatalf("projectID is not provided")
 		}
 	}
+	
+	defaultServiceAcct, err = metadata.Email("")
+	if err != nil {
+		log.Printf("unable to retrieve service account, provide with ENV")
+	}
+
 
 	if port = os.Getenv("PORT"); port == "" {
 		port = "8080"
@@ -139,9 +148,15 @@ func addCapacityHandler(w http.ResponseWriter, r *http.Request) {
 	
 	commit, err := addCapacity(r.Context(), projectID, p.Region, p.ExtraSlot, maxSlots)
 	if err != nil {
+		if errors.Is(err,errMaxSot) {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`{"data":"max_slot exceeded"}"`))
+			log.Println(err)
+			return
+		}
+
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "errors: %v", err)
-
 		log.Println(err)
 		return
 	}
@@ -186,8 +201,13 @@ func addCapacity(ctx context.Context, adminProjectID, region string, extraSlot, 
 	if err != nil {
 		return nil, fmt.Errorf("getting project slots: %v", err)
 	}
+
 	if slotsToAdd <= 0 {
-		return nil, errors.New("slots to add to capacity can not be less than or equal to zero OR commitment has reached MAX Capacity Slot")
+		return nil, errMaxSot
+	}
+
+	if slotsToAdd <= 100 {
+		slotsToAdd = 100 // minimum FLEX slot is 100 
 	}
 
 	req := &reservationpb.CreateCapacityCommitmentRequest{
@@ -225,6 +245,7 @@ func checkProjectSlots(ctx context.Context, client *reservation.Client, parent s
 	}
 
 	slotCap := maxSlots - total
+
 	return min(extraSlots, slotCap), nil
 }
 
@@ -261,6 +282,11 @@ func launchDeleteTask(ctx context.Context, r *http.Request, adminProjectID, queu
 					Body:       body,
 					Headers: map[string]string{
 						"Content-Type": "application/json",
+					},
+					AuthorizationHeader: &taskspb.HttpRequest_OidcToken{
+						OidcToken: &taskspb.OidcToken{
+							ServiceAccountEmail: defaultServiceAcct,
+						},
 					},
 				},
 			},
